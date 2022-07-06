@@ -1,6 +1,7 @@
 use std::env;
 
 use serenity::async_trait;
+use serenity::http::CacheHttp;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 // use serenity::model::interactions::message_component;
@@ -16,7 +17,7 @@ pub struct MessageTubmler {
 
 impl MessageTubmler {
     pub fn get_matching_message(&self, substr: &String) -> Option<&Message>{
-        for m in self.messages.iter() {
+        for m in self.messages.iter().rev() {
             if m.content.contains(substr){
                 return Some(m)
             } else {
@@ -76,15 +77,35 @@ async fn handle_mold_command(args: &String, ctx: &Context) -> Option<String> {
             }
         }
     }
+}
 
+async fn handle_bot_shittalk(msg: &Message, ctx: &Context){
+    
+    let rand_u8 = rand::random::<u8>();
+    if rand_u8 > 7 {        
+        return;
+    }
+    println!("Molding a bot: {}", msg.author.name);
+
+    if let Err(why) = msg.reply(
+        &ctx.http,
+        ironize_string(&msg.content)
+    ).await {
+        println!("Error sending message: {:?}", why);
+    }
 }
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
-        
+
+        if msg.is_own(&ctx.cache) {
+            // println!("is own! {}",msg.content);
+            return;
+        }
+
         if msg.author.bot {
-            //for now I'm not dealing with some cursed looping potential
+            handle_bot_shittalk(&msg, &ctx).await;
             return;
         }
         let first_word = msg.content
