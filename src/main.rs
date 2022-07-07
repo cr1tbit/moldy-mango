@@ -1,14 +1,16 @@
 use std::env;
-
+use std::sync::Arc;
 use serenity::async_trait;
-use serenity::http::CacheHttp;
+use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
+use serenity::model::id::ChannelId;
 // use serenity::model::interactions::message_component;
 use serenity::prelude::*;
 
 struct Handler;
 
+// static global_http_ctx = &Arc<Http>;
 
 pub struct MessageTubmler {
     messages: Vec<Message>,
@@ -95,6 +97,10 @@ async fn handle_bot_shittalk(msg: &Message, ctx: &Context){
     }
 }
 
+// async fn say_async(){    
+//     // ChannelId(958113460305145879).say(&your_cache_and_http.http, "hey there").await
+// }
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
@@ -152,6 +158,11 @@ async fn main() {
 
     let mut client =
         Client::builder(&token, intents).event_handler(Handler).await.expect("Err creating client");
+
+
+
+
+    // global_http_ctx = &client.cache_and_http.http.clone();
 
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
